@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="card" style="width:700px">
+
+<h2>Blood Donor Dashboard</h2>
+<button onclick="logout()">Logout</button>
+
+<h3>Add Donor</h3>
+
+<input id="name" placeholder="Name">
+
+<select id="blood">
+  <option>A+</option>
+  <option>B+</option>
+  <option>O+</option>
+  <option>AB+</option>
+</select>
+
+<input id="phone" placeholder="Phone">
+<input id="city" placeholder="City">
+
+<button onclick="addDonor()">Add</button>
+
+<h3>Donor List</h3>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Blood</th>
+<th>Phone</th>
+<th>City</th>
+</tr>
+</thead>
+
+<tbody id="list"></tbody>
+</table>
+
+</div>
+
+
+<script>
+/* ================= AUTH CHECK ================= */
+
+const token = localStorage.getItem("token");
+if(!token) window.location = "login.html";
+
+
+/* ================= LOGOUT ================= */
+
+function logout(){
+  localStorage.removeItem("token");
+  window.location = "login.html";
+}
+
+
+/* ================= ADD DONOR ================= */
+
+async function addDonor(){
+
+  const donorData = {
+    name: document.getElementById("name").value,
+    bloodGroup: document.getElementById("blood").value,
+    phone: document.getElementById("phone").value,
+    city: document.getElementById("city").value
+  };
+
+  await fetch("http://localhost:5000/donors", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": token
+    },
+    body: JSON.stringify(donorData)
+  });
+
+  // clear inputs
+  name.value = "";
+  phone.value = "";
+  city.value = "";
+
+  loadDonors();
+}
+
+
+/* ================= LOAD DONORS ================= */
+
+async function loadDonors(){
+
+  const res = await fetch("http://localhost:5000/donors", {
+    headers: { Authorization: token }
+  });
+
+  const data = await res.json();
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(d => {
+    const row = `
+      <tr>
+        <td>${d.name}</td>
+        <td>${d.bloodGroup}</td>
+        <td>${d.phone}</td>
+        <td>${d.city}</td>
+      </tr>
+    `;
+    list.innerHTML += row;
+  });
+}
+
+
+/* ================= INIT ================= */
+
+loadDonors();
+
+</script>
+
+</body>
+</html>
+
